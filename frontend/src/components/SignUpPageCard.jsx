@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {useAuthStore} from "../store/useAuthStore.js";
+import toast from "react-hot-toast";
 
 export default function SignUpPage({switchToLogin }){
     const [showPassword, setShowPassword] = useState(false);
@@ -14,12 +15,12 @@ export default function SignUpPage({switchToLogin }){
     // Validate form values
     const validateForm = () => {
         if (!formData.fullName || !formData.email|| !formData.password ){
-            console.log("Fields Required");
+            toast.error("Fill-up missing fields");
             return false
         }
 
         if (formData.password != formData.confirmPassword){
-            console.log("Password don't match");
+            toast.error("Password doesn't match");
             return false
         }
 

@@ -1,5 +1,6 @@
 import {create} from "zustand";
 import {api} from "../lib/axios.js";
+import toast from "react-hot-toast";
 
 const BASE_URL = import.meta.env.MODE === "development" ? "http://192.168.5.137:5001/api/v1" : "/";
 
@@ -28,8 +29,9 @@ export const useAuthStore = create((set, get) => ({
 
             const userData = res.data.userData;
             set({authUser: userData});
+            toast.success("Logged In");
         } catch (error){
-            console.log("Error", error);
+            toast.error("Error during login");
         } finally {
             set({isLoggingIn: false});
         }
@@ -40,8 +42,9 @@ export const useAuthStore = create((set, get) => ({
         try{
             const res = await api.post("/auth/sign-up", formData);
             set({authUser: res.data.userData});
+            toast.success("User Sign-In Success!");
         } catch (error) {
-            console.log("Error", error);
+            toast.error("Error during sign-up");
         } finally {
             set({isSigningUp: false});
         }
