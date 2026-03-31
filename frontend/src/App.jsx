@@ -8,9 +8,12 @@ import { useEffect } from 'react';
 import LoginPage from './pages/AuthPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import { useAuthStore } from './store/useAuthStore.js';
+import * as Sentry from '@sentry/react';
+const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
 
 const App = () => {
   const {authUser, checkAuth, isCheckingAuth} = useAuthStore();
+  
   
   // Check if user is authenticated on app load.
   // This runs once on mount and verifies the session with the backend.
@@ -27,11 +30,11 @@ const App = () => {
   )
 
   return(
-    <Routes>
+    <SentryRoutes>
       <Route path='/' element={<Navigate to={authUser ? "/homepage" : "/auth"} />} />
       <Route path='/auth' element={!authUser ? <LoginPage /> : <Navigate to="/homepage"/>} />
       <Route path='/homepage' element={authUser ? <HomePage /> : <Navigate to="/auth"/>} />
-    </Routes>
+    </SentryRoutes>
   )
 }
 
