@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import {Loader} from "lucide-react";
 import { useEffect } from 'react';
 
+
 // Local Imports // 
 import LoginPage from './pages/AuthPage.jsx';
 import HomePage from './pages/HomePage.jsx';
