@@ -1,0 +1,11 @@
+import { generateStreamToken } from "../config/stream.js";
+
+export const getStreamToken = async (req, res) => {
+  try {
+    const token = generateStreamToken(req.user._id.toString());
+    res.status(200).json({ message:"Token Generated", token });
+  } catch (error) {
+    console.log("Error generating Stream token:", error);
+    res.status(500).json({ message: "Failed to generate Stream token" });
+  }
+};
