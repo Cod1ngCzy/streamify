@@ -38,8 +38,6 @@ export default function SignUpPage({switchToLogin }){
             password: formData.password,
         };
 
-        console.log(payload);
-
         signUp(payload);
     };
 

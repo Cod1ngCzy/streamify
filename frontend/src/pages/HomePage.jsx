@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore.js";
+import { useStreamChat } from "../hooks/useStreamChat.js";
 
 // Components Imports
 import ChatContainer from "../components/ChatContainer.jsx";
+import { useChatStore } from "../store/useChatStore.js";
 
 const users = [
   { id: 1, name: "Alex Rivera", status: "online", avatar: "AR", color: "bg-indigo-500" },
@@ -35,6 +37,10 @@ export default function HomePage() {
   const [dmsOpen, setDmsOpen] = useState(true);
   const [showNewChannel, setShowNewChannel] = useState(false);
   const [newChannelName, setNewChannelName] = useState("");
+
+  // For Channel
+  const {chatClient, error, isConnecting} = useStreamChat();
+  
 
   const filtered = users.filter((u) =>
     u.name.toLowerCase().includes(search.toLowerCase())

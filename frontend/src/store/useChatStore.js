@@ -11,19 +11,32 @@ export const useChatStore = create((set, get) => ({
   error: null,
 
   connectUser: async ({ user, token }) => {
-    if (!user?.id || !token || !STREAM_API_KEY) return;
+    if (!user?._id || !token || !STREAM_API_KEY) {
+      console.log(STREAM_API_KEY);
+      return
+    };
 
     const existingClient = get().chatClient;
-    if (existingClient) return; // prevent duplicate connections
+    if (existingClient?.userID === user._id) return; // prevent duplicate connections
 
     set({ isConnecting: true });
 
     try {
+      // Disconnect any stale client first
+      if (existingClient) {
+        await existingClient.disconnectUser();
+      }
+
       const client = StreamChat.getInstance(STREAM_API_KEY);
+
+      // If getInstance returned an already-connected client, disconnect first
+      if (client.userID && client.userID !== user._id) {
+        await client.disconnectUser();
+      }
 
       await client.connectUser(
         {
-          id: user.id,
+          id: user._id,
           name:
             user.fullName ??
             user.username ??

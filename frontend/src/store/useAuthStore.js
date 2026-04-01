@@ -1,8 +1,7 @@
 import {create} from "zustand";
 import {api} from "../lib/axios.js";
 import toast from "react-hot-toast";
-
-const BASE_URL = import.meta.env.MODE === "development" ? "http://192.168.5.137:5001/api/v1" : "/";
+import { useChatStore } from "./useChatStore.js";
 
 export const useAuthStore = create((set, get) => ({
     authUser: null,
@@ -53,6 +52,10 @@ export const useAuthStore = create((set, get) => ({
     signOut: async () => {
         try{
             await api.post("/auth/sign-out");
+
+            // Disconnect stream client on logout
+            const { disconnectUser } = useChatStore.getState();
+            await disconnectUser();
             set({authUser: null});
         } catch (error){
             console.log(error.response.data.message);

@@ -13,7 +13,6 @@ export default function LoginPageCard({switchToSignup }){
     const handleSubmit = async (e) => {
         e.preventDefault();
         signIn(formData);
-        throw new Error("This is your error");
     }
     
     return(
