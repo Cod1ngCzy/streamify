@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { useAuthStore } from "../store/useAuthStore.js";
-import { useStreamChat } from "../hooks/useStreamChat.js";
 
-// Components Imports
+// Local Imports
 import ChatContainer from "../components/ChatContainer.jsx";
+import { useAuthStore } from "../store/useAuthStore.js";
 import { useChatStore } from "../store/useChatStore.js";
 
 const users = [
@@ -29,6 +28,7 @@ const statusColors = {
 
 export default function HomePage() {
   const { authUser, signOut } = useAuthStore();
+  const {chatClient, isConnecting, initChat, disconnectChat} = useChatStore();
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [search, setSearch] = useState("");
@@ -38,8 +38,11 @@ export default function HomePage() {
   const [showNewChannel, setShowNewChannel] = useState(false);
   const [newChannelName, setNewChannelName] = useState("");
 
-  // For Channel
-  const {chatClient, error, isConnecting} = useStreamChat();
+  // For Stream Client
+  useEffect(() => {
+    if (authUser) initChat(authUser);
+    return () => disconnectChat();
+  }, [authUser?._id]);
   
 
   const filtered = users.filter((u) =>

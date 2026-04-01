@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { StreamChat } from "stream-chat";
-import * as Sentry from "@sentry/react";
+import { api } from "../lib/axios";
 import toast from "react-hot-toast";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
@@ -10,57 +10,40 @@ export const useChatStore = create((set, get) => ({
   isConnecting: false,
   error: null,
 
-  connectUser: async ({ user, token }) => {
-    if (!user?._id || !token || !STREAM_API_KEY) {
-      console.log(STREAM_API_KEY);
-      return
-    };
+  initChat: async (user) => {
+    if (!user?._id || !STREAM_API_KEY) return;
+    if (get().chatClient?.userID === user._id.toString()) return; // already connected
 
-    const existingClient = get().chatClient;
-    if (existingClient?.userID === user._id) return; // prevent duplicate connections
-
-    set({ isConnecting: true });
+    set({ isConnecting: true, error: null });
 
     try {
-      // Disconnect any stale client first
-      if (existingClient) {
-        await existingClient.disconnectUser();
-      }
+     // fetch stream token
+      const { data } = await api.get("/chat/token");
 
+     // connect to client (steam-chat-api)
       const client = StreamChat.getInstance(STREAM_API_KEY);
 
-      // If getInstance returned an already-connected client, disconnect first
-      if (client.userID && client.userID !== user._id) {
-        await client.disconnectUser();
-      }
+      if (client.userID) await client.disconnectUser(); // clear stale connection
 
       await client.connectUser(
         {
-          id: user._id,
-          name:
-            user.fullName ??
-            user.username ??
-            user.primaryEmailAddress?.emailAddress ??
-            user.id,
+          id: user._id.toString(),
+          name: user.fullName ?? user.username ?? user._id.toString(),
           image: user.imageUrl ?? undefined,
         },
-        token
+        data.token
       );
 
       set({ chatClient: client, isConnecting: false });
-      toast.success("Stream connection success");
+      toast.success("Connected to chat");
     } catch (error) {
       console.error("Stream connection error:", error);
-      toast.error("Connecting user to stream failed");
-      Sentry.captureException(error, {
-        tags: { component: "chatStore" },
-      });
-
+      toast.error("Failed to connect to chat");
       set({ error, isConnecting: false });
     }
   },
 
-  disconnectUser: async () => {
+  disconnectChat: async () => {
     const client = get().chatClient;
     if (client) {
       await client.disconnectUser();
