@@ -2,19 +2,23 @@ import { create } from "zustand";
 import { StreamChat } from "stream-chat";
 import { api } from "../lib/axios";
 import toast from "react-hot-toast";
+import { getChannel } from "stream-chat-react";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
 export const useChatStore = create((set, get) => ({
   chatClient: null,
-  isConnecting: false,
-  error: null,
+  isClientConnecting: false,
+  streamAPIerror: null,
+  channelList: [],
+  isGettingChannelList: false,
 
+  // This Function is For Stream Chat API
   initChat: async (user) => {
     if (!user?._id || !STREAM_API_KEY) return;
     if (get().chatClient?.userID === user._id.toString()) return; // already connected
 
-    set({ isConnecting: true, error: null });
+    set({ isClientConnecting: true, streamAPIerror: null });
 
     try {
      // fetch stream token
@@ -34,12 +38,12 @@ export const useChatStore = create((set, get) => ({
         data.token
       );
 
-      set({ chatClient: client, isConnecting: false });
+      set({ chatClient: client, isClientConnecting: false });
       toast.success("Connected to chat");
     } catch (error) {
-      console.error("Stream connection error:", error);
+      console.error("Stream connection error:", streamAPIerror);
       toast.error("Failed to connect to chat");
-      set({ error, isConnecting: false });
+      set({ streamAPIerror, isClientConnecting: false });
     }
   },
 
@@ -50,4 +54,5 @@ export const useChatStore = create((set, get) => ({
       set({ chatClient: null });
     }
   },
+
 }));

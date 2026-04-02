@@ -18,4 +18,5 @@ router.get("/check", authenticateToken, (req, res) => {
     res.status(200).json(req.user)
 });
 
+
 export default router;

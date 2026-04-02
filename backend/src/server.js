@@ -12,6 +12,7 @@ import { ENV } from "./config/env.js";
 import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
+import channelRoutes from "./routes/channel.routes.js";
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 // API ROUTES
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/chat", chatRoutes);
+app.use("/api/v1/channel", channelRoutes);
 
 
 // Must be AFTER routes
