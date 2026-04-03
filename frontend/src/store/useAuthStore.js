@@ -54,11 +54,11 @@ export const useAuthStore = create((set, get) => ({
             await api.post("/auth/sign-out");
 
             // Disconnect stream client on logout
-            const { disconnectUser } = useChatStore.getState();
-            await disconnectUser();
+            const { disconnectChat } = useChatStore.getState();
+            await disconnectChat();
             set({authUser: null});
         } catch (error){
-            console.log(error.response.data.message);
+            console.log("Error Signing Out", error);
         }
     },
 }));

@@ -54,8 +54,8 @@ export default function HomePage() {
   //
   if (isClientConnecting || !chatClient) return;
 
-  const filtered = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase())
+  const filtered = users.filter((user) =>
+    user.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const onlineCount = users.filter((u) => u.status === "online").length;

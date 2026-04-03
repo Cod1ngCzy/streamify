@@ -22,7 +22,8 @@ export const useChannelStore = create((set,get) => ({
   createChannel: async (formData) => {
     set({isCreatingChannel: true});
     try{
-
+      const res = await api.post("/channel/create", formData);
+      toast.success("Channel created");
     } catch (error){
         toast.error("Error creating channel");
     } finally{
