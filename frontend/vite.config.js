@@ -10,6 +10,8 @@ export default defineConfig({
     hmr: {
       clientPort: 5173
     },
+    // Allowed Host
+    allowedHosts: ['https://4fc1-112-206-104-230.ngrok-free.app'],
     
     // Vite Proxy for Outside Network Debugging
     // Not recommended for production, use nginx

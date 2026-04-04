@@ -16,7 +16,7 @@ export default function CreateChannelModal({setShowNewChannel}) {
 
     const [formData, setFormData] = useState({
         name: "",
-        type: "",
+        type: channelType,
     })
 
     // fetch user for member selection [TODO: Implement Friendship System]
@@ -42,30 +42,49 @@ export default function CreateChannelModal({setShowNewChannel}) {
         fetchUsers();
     }, [client]);
 
-    const validateChannelFields = (formData) => {
-        if (formData.name.length < 5) {
-            toast.error("Channel name too short")
-            return;
-        } else if (formData.type != "private" || formData.type != "public"){
-            toast.error("Channel type error");
-            return;
-        }
-    }
-
     const toggleMember = (id) => {
         setSelectedMembers((prev) => 
             prev.includes(id) ? prev.filter((u) => u !== id) : [...prev, id]
         );
     };
 
-    const HandleChannelCreate = (e) => {
+    const HandleChannelCreate = async (e) => {
         e.preventDefault();
         const payload = {
             ...formData,
             members: selectedMembers,
         };
-        createChannel(payload);
-        console.log("Created", payload);
+        const success = await createChannel(payload);
+
+        if(!success) return;
+
+        // Send the channel data to stream sdk
+        const channelId = formData.name
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-_]/g, "")
+        .slice(0, 20);
+
+        const channelData = {
+            name: formData.name.trim(),
+            created_by_id: client.user.id,
+            members: [client.user.id, ...selectedMembers]
+        }
+
+        if (description) channelData.description = description;
+
+        if(formData.type === "private") {
+            channelData.private = true;
+            channelData.visibility = "private";
+        } else {
+            channelData.visibility = "public";
+            channelData.discoverable = true;
+        }
+
+        const channel = client.channel("messaging", channelId, channelData);
+        await channel.watch();
+        setActiveChannel(channel);
     }
 
     return(

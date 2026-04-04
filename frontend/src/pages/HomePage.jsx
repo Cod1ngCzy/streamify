@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
+import "stream-chat-react/dist/css/v2/index.css";
 
 // Local Imports
-import ChatContainer from "../components/ChatContainer.jsx";
+import ChatHeader from "../components/ChatHeader.jsx";
 import CreateChannelModal from "../components/CreateChannelModel.jsx";
 import { useAuthStore } from "../store/useAuthStore.js";
 import { useChatStore } from "../store/useChatStore.js";
@@ -15,7 +17,6 @@ import {
   Thread,
   Window,
 } from "stream-chat-react";
-
 
 const users = [
   { id: 1, name: "Alex Rivera", status: "online", avatar: "AR", color: "bg-indigo-500" },
@@ -35,6 +36,7 @@ export default function HomePage() {
   const { authUser, signOut } = useAuthStore();
   const {chatClient, isClientConnecting, initChat, disconnectChat} = useChatStore();
   const {isGettingChannelList, channelList, getSubscribedChannels} = useChannelStore();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [search, setSearch] = useState("");
@@ -42,18 +44,35 @@ export default function HomePage() {
   const [dmsOpen, setDmsOpen] = useState(true);
   const [showNewChannel, setShowNewChannel] = useState(false);
 
-  // For Stream API 
+  // Split into two effects
   useEffect(() => {
     if (authUser) {
-      initChat(authUser);
-      getSubscribedChannels();
+      initChat(authUser).then(() => getSubscribedChannels());
     }
-    return () => disconnectChat();
-  }, [authUser?._id]);
+    return () => disconnectChat(); // only runs on unmount now
+  }, [authUser?._id]); // ← no searchParams here
 
-  //
-  if (isClientConnecting || !chatClient) return;
-
+  useEffect(() => {
+    if (!chatClient) return;
+    const channelId = searchParams.get("channel");
+    if (channelId) {
+      const init = async () => {
+        const channel = chatClient.channel("messaging", channelId);
+        await channel.watch();
+        setSelectedChannel(channel);
+      };
+      init();
+    }
+  }, [searchParams, chatClient]); // ← separate effect for channel selection
+  
+  if (isClientConnecting || !chatClient) return (
+    <>
+      <div className="flex h-screen bg-[#080b14] items-center justify-center">
+        <div className="text-slate-500 text-sm">Connecting...</div>
+      </div>
+    </>
+  );
+  
   const filtered = users.filter((user) =>
     user.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -65,18 +84,24 @@ export default function HomePage() {
     setSelectedChannel(null);
   };
 
-  const handleSelectChannel = (channel) => {
-    setSelectedChannel(channel);
-    setSelectedUser(null);
-    // Clear unread on select
-    setChannels((prev) =>
-      prev.map((c) => (c.id === channel.id ? { ...c, unread: 0 } : c))
-    );
+  const handleSelectChannel = async (channel) => {
+    // Trim
+    const channelId = channel.name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-_]/g, "")
+    .slice(0, 20);
+
+    setSelectedChannel(channelId);
+    setSearchParams({channel: channelId});
+    console.log(channel, selectedChannel);
   };
 
   return (
     <div className="flex h-screen bg-[#080b14] overflow-hidden">
       <Chat client={ chatClient }>
+        {/* Create Channel */}
         {showNewChannel && (
           <CreateChannelModal
             onClose={() => setShowNewChannel(false)}
@@ -88,6 +113,7 @@ export default function HomePage() {
             setShowNewChannel={setShowNewChannel}
           />
         )}
+
         {/* Left Sidebar */}
         <div className="w-72 flex flex-col bg-[#0b0f1e] border-r border-white/5 flex-shrink-0">
 
@@ -307,10 +333,18 @@ export default function HomePage() {
           </div>
         </div>
 
-        <ChatContainer
-          selectedUser={selectedUser}
-          selectedChannel={selectedChannel}
-        />
+        {/*RIGHT CONTAINER FOR CHATS*/}
+        <div className="w-full chat-main">
+          <Channel channel={selectedChannel}>
+            <Window>
+                <ChatHeader/>
+                <MessageList/>
+                <MessageInput/>
+            </Window>
+            <Thread/>
+        </Channel>
+        </div>
+
       </Chat>
     </div>
   );
