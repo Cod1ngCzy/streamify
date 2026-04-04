@@ -5,6 +5,7 @@ import "stream-chat-react/dist/css/v2/index.css";
 // Local Imports
 import ChatHeader from "../components/ChatHeader.jsx";
 import CreateChannelModal from "../components/CreateChannelModel.jsx";
+import Loader from "../components/StreamifyLoaderPage.jsx";
 import { useAuthStore } from "../store/useAuthStore.js";
 import { useChatStore } from "../store/useChatStore.js";
 import { useChannelStore } from "../store/useChannelStore.js";
@@ -49,11 +50,12 @@ export default function HomePage() {
     if (authUser) {
       initChat(authUser).then(() => getSubscribedChannels());
     }
-    return () => disconnectChat(); // only runs on unmount now
-  }, [authUser?._id]); // ← no searchParams here
+    return () => disconnectChat();
+  }, [authUser]); 
 
   useEffect(() => {
     if (!chatClient) return;
+
     const channelId = searchParams.get("channel");
     if (channelId) {
       const init = async () => {
@@ -66,11 +68,7 @@ export default function HomePage() {
   }, [searchParams, chatClient]); // ← separate effect for channel selection
   
   if (isClientConnecting || !chatClient) return (
-    <>
-      <div className="flex h-screen bg-[#080b14] items-center justify-center">
-        <div className="text-slate-500 text-sm">Connecting...</div>
-      </div>
-    </>
+    <Loader/>
   );
   
   const filtered = users.filter((user) =>
@@ -95,7 +93,6 @@ export default function HomePage() {
 
     setSelectedChannel(channelId);
     setSearchParams({channel: channelId});
-    console.log(channel, selectedChannel);
   };
 
   return (

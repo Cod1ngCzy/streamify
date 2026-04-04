@@ -15,7 +15,7 @@ router.post("/sign-in", signIn);
 router.post("/sign-out", signOut);
 
 router.get("/check", authenticateToken, (req, res) => {
-    res.status(200).json(req.user)
+    res.status(200).json(req.user);
 });
 
 

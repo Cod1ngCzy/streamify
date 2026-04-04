@@ -15,8 +15,8 @@ import "@stream-io/video-react-sdk/dist/css/styles.css";
 
 // Local Imports
 import { useAuthStore } from "../store/useAuthStore";
-import { useChannelStore } from "../store/useChannelStore";
 import { api } from "../lib/axios";
+import Loader from "../components/StreamifyLoaderPage.jsx";
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
 export default function CallPage(){
@@ -71,9 +71,7 @@ export default function CallPage(){
 
     if (isConnecting) {
         return (
-        <div className="flex h-screen bg-[#080b14] items-center justify-center">
-            <div className="text-slate-500 text-sm">Connecting to call...</div>
-        </div>
+            <Loader message={"Connecting to call"} showMessage={true}/>
         )
     }
 

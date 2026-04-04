@@ -1,6 +1,5 @@
 import './App.css'
 import { Routes, Route, Navigate } from "react-router-dom";
-import {Loader} from "lucide-react";
 import { useEffect } from 'react';
 import * as Sentry from '@sentry/react';
 const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
@@ -8,7 +7,8 @@ const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
 // Local Imports // 
 import LoginPage from './pages/AuthPage.jsx';
 import HomePage from './pages/HomePage.jsx';
-import CallPage from './components/CallPage.jsx';
+import CallPage from './pages/CallPage.jsx';
+import Loader from "./components/StreamifyLoaderPage.jsx";
 import { useAuthStore } from './store/useAuthStore.js';
 
 
@@ -24,9 +24,7 @@ const App = () => {
   }, [checkAuth])
 
   if (isCheckingAuth && !authUser) return (
-    <div className="flex items-center justify-center h-screen">
-      <Loader className="size-10 animate-spin" />
-    </div>
+    <Loader />
   )
 
   return(

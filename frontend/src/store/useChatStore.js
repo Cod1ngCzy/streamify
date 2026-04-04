@@ -28,8 +28,6 @@ export const useChatStore = create((set, get) => ({
 
       if (client.userID) await client.disconnectUser(); // clear stale connection
 
-      console.log(client, user._id);
-
       await client.connectUser(
         {
           id: user._id.toString(),

@@ -7,12 +7,12 @@ export default defineConfig({
   server: {
     host: true, // allow access from other devices
     port: 5173,
+    strictPort: true,
+    allowedHosts: ["6fd1-112-206-104-230.ngrok-free.app"],
     hmr: {
-      clientPort: 5173
+      clientPort: 443
     },
-    // Allowed Host
-    allowedHosts: ['https://4fc1-112-206-104-230.ngrok-free.app'],
-    
+
     // Vite Proxy for Outside Network Debugging
     // Not recommended for production, use nginx
     // ❌ If planning to remove proxy, change axios to baseURL: "http://<your-ip>:5001/api/v1"

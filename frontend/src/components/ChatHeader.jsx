@@ -20,10 +20,10 @@ export default function ChatHeader() {
   };
 
   const handleVideoCall = async () => {
-    const callUrl = `${"http://192.168.5.137:5173"}/call/${channel.id}`;
-    await channel.sendMessage({
-      text: `📹 I've started a video call. Join here: ${callUrl}`,
-    });
+      const callUrl = `${window.location.origin}/call/${channel.id}`;
+      await channel.sendMessage({
+        text: `📹 I've started a video call. Join here: ${callUrl}`,
+      });
   };
 
   return (
