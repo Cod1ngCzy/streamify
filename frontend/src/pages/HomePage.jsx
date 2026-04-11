@@ -1,23 +1,25 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import "stream-chat-react/dist/css/v2/index.css";
-
-// Local Imports
-import ChatHeader from "../components/ChatHeader.jsx";
-import CreateChannelModal from "../components/CreateChannelModel.jsx";
-import Loader from "../components/StreamifyLoaderPage.jsx";
-import { useAuthStore } from "../store/useAuthStore.js";
-import { useChatStore } from "../store/useChatStore.js";
-import { useChannelStore } from "../store/useChannelStore.js";
 import {
   Chat,
   Channel,
-  ChannelList,
   MessageList,
   MessageInput,
   Thread,
   Window,
 } from "stream-chat-react";
+
+// Local Imports
+import ChatHeader from "../components/ChatHeader.jsx";
+import CreateChannelModal from "../components/CreateChannelModel.jsx";
+import Loader from "../components/StreamifyLoaderPage.jsx";
+import ChatSkeleton from "../components/ChatSkeleton.jsx";
+import { useAuthStore } from "../store/useAuthStore.js";
+import { useChatStore } from "../store/useChatStore.js";
+import { useChannelStore } from "../store/useChannelStore.js";
+import toast from "react-hot-toast";
+
 
 const users = [
   { id: 1, name: "Alex Rivera", status: "online", avatar: "AR", color: "bg-indigo-500" },
@@ -36,7 +38,7 @@ const statusColors = {
 export default function HomePage() {
   const { authUser, signOut } = useAuthStore();
   const {chatClient, isClientConnecting, initChat, disconnectChat} = useChatStore();
-  const {isGettingChannelList, channelList, getSubscribedChannels} = useChannelStore();
+  const {channelList, getSubscribedChannels} = useChannelStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedChannel, setSelectedChannel] = useState(null);
@@ -44,12 +46,15 @@ export default function HomePage() {
   const [channelsOpen, setChannelsOpen] = useState(true);
   const [dmsOpen, setDmsOpen] = useState(true);
   const [showNewChannel, setShowNewChannel] = useState(false);
+  const [channelLoading, setChannelLoading] = useState(false);
 
   // Split into two effects
   useEffect(() => {
     if (authUser) {
       initChat(authUser).then(() => getSubscribedChannels());
     }
+
+    // If unmount
     return () => disconnectChat();
   }, [authUser]); 
 
@@ -57,15 +62,24 @@ export default function HomePage() {
     if (!chatClient) return;
 
     const channelId = searchParams.get("channel");
-    if (channelId) {
-      const init = async () => {
+    
+    if (!channelId) return;
+
+    const init = async () => {
+      try {
+        setChannelLoading(true);
         const channel = chatClient.channel("messaging", channelId);
         await channel.watch();
         setSelectedChannel(channel);
-      };
-      init();
-    }
-  }, [searchParams, chatClient]); // ← separate effect for channel selection
+      } catch (error) {
+        toast.error("Error loading channel");
+      } finally {
+        setChannelLoading(false); // ✅ now runs AFTER await channel.watch()
+      }
+    };
+
+    init();
+  }, [searchParams, chatClient]);
   
   if (isClientConnecting || !chatClient) return (
     <Loader/>
@@ -83,17 +97,19 @@ export default function HomePage() {
   };
 
   const handleSelectChannel = async (channel) => {
-    // Trim
-    const channelId = channel.name
+  const channelId = channel.name
     .toLowerCase()
     .trim()
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-_]/g, "")
     .slice(0, 20);
-
-    setSelectedChannel(channelId);
-    setSearchParams({channel: channelId});
-  };
+  
+  const paramsId = searchParams.get("channel");
+  if(paramsId === channelId) return;
+  
+  setSelectedChannel(null);        // ✅ clear old channel first
+  setSearchParams({ channel: channelId });
+};
 
   return (
     <div className="flex h-screen bg-[#080b14] overflow-hidden">
@@ -195,7 +211,6 @@ export default function HomePage() {
                 </button>
               </button>
 
-
               {/* Channel list */}
               {channelsOpen && (
                 <div className="space-y-0.5">
@@ -204,7 +219,7 @@ export default function HomePage() {
                       key={channel._id}
                       onClick={() => handleSelectChannel(channel)}
                       className={`w-full flex items-center gap-2 px-2 py-2 rounded-xl transition-all duration-150 group text-left ${
-                        selectedChannel?.id === channel._id
+                        selectedChannel?._id === channel.name
                           ? "bg-indigo-500/15 border border-indigo-500/20"
                           : "hover:bg-white/[0.04] border border-transparent"
                       }`}
@@ -331,17 +346,52 @@ export default function HomePage() {
         </div>
 
         {/*RIGHT CONTAINER FOR CHATS*/}
-        <div className="w-full chat-main">
+     <div className="w-full chat-main flex flex-col">
+        {!selectedChannel && !channelLoading ? (
+          <div className="flex-1 flex flex-col items-center justify-center h-full gap-4">
+            
+            {/* Icon */}
+            <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="2" width="9" height="9" rx="2" fill="#a5b4fc"/>
+                <rect x="13" y="2" width="9" height="9" rx="2" fill="#a5b4fc" opacity="0.5"/>
+                <rect x="2" y="13" width="9" height="9" rx="2" fill="#a5b4fc" opacity="0.5"/>
+                <rect x="13" y="13" width="9" height="9" rx="2" fill="#a5b4fc"/>
+              </svg>
+            </div>
+
+            {/* Text */}
+            <div className="text-center">
+              <h2 className="text-slate-200 font-semibold text-lg mb-1">No channel selected</h2>
+              <p className="text-slate-600 text-sm">Pick a channel from the sidebar to start chatting</p>
+            </div>
+
+            {/* Hint */}
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              <span onClick={() => setShowNewChannel(true)} className="text-slate-600 text-xs cursor-pointer hover:text-slate-400 transition-colors">
+                Or create a new channel
+              </span>
+            </div>
+
+          </div>
+
+        ) : channelLoading ? (
+          <ChatSkeleton />
+        ) : (
           <Channel channel={selectedChannel}>
             <Window>
-                <ChatHeader/>
-                <MessageList/>
-                <MessageInput/>
+              <ChatHeader />
+              <MessageList />
+              <MessageInput />
             </Window>
-            <Thread/>
-        </Channel>
-        </div>
-
+            <Thread />
+          </Channel>
+        )}
+      </div>
       </Chat>
     </div>
   );

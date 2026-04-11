@@ -32,9 +32,7 @@ export default function CallPage(){
             // Fetch Token
             const { data } = await api.get("/chat/token");
 
-            console.log(data, authUser);
             if(!data || !authUser) return;
-            console.log("initiating call sequence");
 
             try {
                 setIsConnecting(true);
@@ -49,18 +47,13 @@ export default function CallPage(){
                     token: data.token
                 })
 
-                console.log(authUser._id, data.token, STREAM_API_KEY);
-
                 const callinstance = videoClient.call("default", channelId);
                 await callinstance.join({create:true});
-
-                console.log(callinstance);
 
                 setClient(videoClient);
                 setCall(callinstance);
             } catch (error){
                 toast.error("Cannot connect to call");
-                console.log(error);
             } finally {
                 setIsConnecting(false);
             }
