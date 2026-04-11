@@ -216,3 +216,11 @@ http://localhost:5173
 ## License
 
 MIT
+
+## Credits & Inspiration
+
+This project was built independently but draws inspiration from:
+
+MERN Stack Project: Video Calling Realtime Chat App & Social App by Codesistency. https://www.youtube.com/watch?v=ZuwigEmwsTM&t=515s
+
+> All code in this repository has been written or significantly modified from the original inspiration.
